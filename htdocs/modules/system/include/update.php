@@ -186,7 +186,7 @@ function xoops_module_update_system(&$module, $oldversion = null, $dbVersion = n
 			/* things specific to this release */
 			if ($dbVersion < $newDbVersion) {
 				// remove old banners tables
-				$tablestodrop = array('banner', 'bannerclient', 'bannerfinish');
+				$tablestodrop = ['banner', 'bannerclient', 'bannerfinish'];
 				foreach ($tablestodrop as $table) {
 					$tableObj = new icms_db_legacy_updater_Table($table);
 					if ($tableObj->exists()) {
@@ -194,20 +194,28 @@ function xoops_module_update_system(&$module, $oldversion = null, $dbVersion = n
 					}
 				}
 
-			// remove the banner config item
-			$criteria = new icms_db_criteria_Compo();
-			$criteria->add(new icms_db_criteria_Item('conf_name', 'banners'));
-			$config = icms::$config->getConfigs($criteria);
-			if (count($config) > 0) {
-				icms::$config->deleteConfig($config[0]);
+			// remove unused config itmes
+			$itemstoremove = ['banners', 'auth_openid'];
+			foreach ($itemstoremove as $item) {
+				$criteria = new icms_db_criteria_Compo();
+				$criteria->add(new icms_db_criteria_Item('conf_name', $item));
+				$config = icms::$config->getConfigs($criteria);
+				if (count($config) > 0) {
+					icms::$config->deleteConfig($config[0]);
+				}
 			}
-
-			// remove the openid config item
-			$criteria = new icms_db_criteria_Compo();
-			$criteria->add(new icms_db_criteria_Item('conf_name', 'auth_openid'));
-			$config = icms::$config->getConfigs($criteria);
-			if (count($config) > 0) {
-				icms::$config->deleteConfig($config[0]);
+				
+			// remove columns from the users table
+			$tabletoupdate = 'users';
+			$columnstoremove = ['openid', 'user_viewoid'];
+			$table = new icms_db_legacy_updater_Table($tabletoupdate);
+			foreach ($columnstoremove as $column) {
+				if ($table->fieldExists($column)) {
+					$table->addDropedField($column);
+				}
+			}
+			if ($table->getDropedFields()) {
+				$table->dropFields();
 			}
 			
 			// remove columns from the users table
