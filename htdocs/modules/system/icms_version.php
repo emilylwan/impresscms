@@ -84,7 +84,7 @@ $modversion['people']['developers'][] = "[url=https://www.impresscms.org/userinf
 
 $modversion['people']['testers'][] = "[url=https://www.impresscms.org/userinfo.php?uid=1102]fiammybe[/url]";
 $modversion['people']['developers'][] = "[url=https://www.impresscms.org/userinfo.php?uid=54]Skenow[/url]";
-$modversion['people']['developers'][] = "[url=https://www.impresscms.org/userinfo.php?uid=489]Mekdrop[/url]
+$modversion['people']['developers'][] = "[url=https://www.impresscms.org/userinfo.php?uid=489]Mekdrop[/url];
 $modversion['people']['translators'][] = "";
 $modversion['people']['documenters'][] = "[url=https://www.impresscms.org/userinfo.php?uid=54]Skenow[/url]";
 $modversion['people']['documenters'][] = "[url=https://www.impresscms.org/userinfo.php?uid=1102]fiammybe[/url]";
