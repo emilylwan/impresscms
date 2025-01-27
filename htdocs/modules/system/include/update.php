@@ -48,10 +48,10 @@ icms_loadLanguageFile('core', 'databaseupdater');
  * @param int $dbVersion The database version
  * @return mixed
  */
-function xoops_module_update_system(&$module, $oldversion = NULL, $dbVersion = NULL) {
-	global $icmsConfig, $xoTheme;
+function xoops_module_update_system(&$module, $oldversion = null, $dbVersion = null) {
+	global $xoTheme;
 
-	$from_112 = $abortUpdate = FALSE;
+	$from_112 = $abortUpdate = false;
 
 	$oldversion = $module->getVar('version');
 	if ($oldversion < 120) {
@@ -98,24 +98,22 @@ function xoops_module_update_system(&$module, $oldversion = NULL, $dbVersion = N
 	 * gets updated. It also clears the templates_c and cache folders.
 	 */
 
-	$CleanWritingFolders = FALSE;
+	$CleanWritingFolders = false;
 
 	/* check for previous release's upgrades - dbversion < this major release's initial version */
 	if ($dbVersion < 46) include 'update-14.php';
 
-	/* Begin upgrade to version 1.5 */
-	if (!$abortUpdate) {
-		$newDbVersion = 47;
-	}
+	/* Begin automatic upgrades available with IPF-compliant objects
+	 * This can be done before any specific upgrade tasks are started
+	 */
+	$icmsDatabaseUpdater->automaticUpgrade('icms_data', array('file', 'urllink'));
+
+	/* Begin upgrade to version 2.0.0 beta 1 */
+	if (!$abortUpdate) $newDbVersion = 47;
 	try {
 		if ($dbVersion < $newDbVersion) {
 
-
 			// Remove all the legacy files that are were removed in 1.5.0
-			//$table = new icms_db_legacy_updater_Table('config');
-			//$icmsDatabaseUpdater->runQuery("ALTER TABLE `" . $table->name() . "` DROP INDEX conf_mod_cat_id, ADD INDEX mod_cat_order(conf_modid, conf_catid, conf_order)", 'Successfully altered the indexes on table config', '');
-			//unset($table);
-
 			// TODO: make a generic file removal function.
 			// Remove the 'deprecated' files in the root and all OpenID related files
 
@@ -134,35 +132,33 @@ function xoops_module_update_system(&$module, $oldversion = NULL, $dbVersion = N
 			];
 
 			// Determine if FCKeditor is in use and remove it if it is not
-			$config_handler = icms::handler('icms_config');
+			//$config_handler = icms::handler('icms_config');
 			$criteria = new icms_db_criteria_Compo();
 			$criteria->add(new icms_db_criteria_Item('conf_value', 'FCKeditor'));
-			$config = $config_handler->getConfigs($criteria);
+			$config = icms::$config->getConfigs($criteria);
 			$confcount = count($config);
-			
+
 			if ($confcount == 0) {
 				icms_core_Filesystem::deleteRecursive(ICMS_EDITOR_PATH . '/FCKeditor', true);
 			}
-			
+
 			// Determine if TinyMCE is in use and remove it if it is not
 			$criteria = new icms_db_criteria_Compo();
 			$criteria->add(new icms_db_criteria_Item('conf_value', 'tinymce'));
-			$config = $config_handler->getConfigs($criteria);
+			$config = icms::$config->getConfigs($criteria);
 			$confcount = count($config);
-			
+
 			if ($confcount == 0) {
 				icms_core_Filesystem::deleteRecursive(ICMS_EDITOR_PATH . '/tinymce', true);
 			}
-			
+
 			// first, remove the files and the folders that contain deprecated classes.
 			foreach ($removeFolders_150 as $foldertoremove) {
 				echo icms_core_Filesystem::deleteRecursive($foldertoremove, true). '</br>';
 			}
 
-			
 			// Third, check if openID is configured as login method. If not, remove.
-			if(!defined('ICMS_INCLUDE_OPENID') )
-			{
+			if(!defined('ICMS_INCLUDE_OPENID')) {
 				foreach ($removeOpenIDfiles as $filetoremove) {
 					icms_core_Filesystem::deleteFile($filetoremove);
 					echo 'Removed ' . $filetoremove . '</br>';
@@ -172,18 +168,74 @@ function xoops_module_update_system(&$module, $oldversion = NULL, $dbVersion = N
 					echo 'Removed' . $foldertoremove . '</br>';
 				}
 			}
-			/* Finish up this portion of the db update */
+		}
 
-			if (!$abortUpdate) {
-				$icmsDatabaseUpdater->updateModuleDBVersion($newDbVersion, 'system');
-				echo sprintf(_DATABASEUPDATER_UPDATE_OK, icms_conv_nr2local($newDbVersion)) . '<br />';
-			}
+		/* Finish up this portion of the db update */
+		if (!$abortUpdate) {
+			$icmsDatabaseUpdater->updateModuleDBVersion($newDbVersion, 'system');
+			echo sprintf(_DATABASEUPDATER_UPDATE_OK, icms_conv_nr2local($newDbVersion)) . '<br />';
 		}
 	}
 	catch (Exception $e) {
 		echo $e->getMessage();
 	}
 
+	/* Begin upgrade to version 2.0.0 beta 2 */
+	if (!$abortUpdate) $newDbVersion = 48;
+	try {
+		/* things specific to this release */
+		if ($dbVersion < $newDbVersion) {
+			// remove old banners tables
+			$tablestodrop = ['banner', 'bannerclient', 'bannerfinish'];
+			foreach ($tablestodrop as $table) {
+				$tableObj = new icms_db_legacy_updater_Table($table);
+				if ($tableObj->exists()) {
+					$tableObj->dropTable();
+				}
+			}
+
+			// remove unused config itmes
+			$itemstoremove = ['banners', 'auth_openid'];
+			foreach ($itemstoremove as $item) {
+				$criteria = new icms_db_criteria_Compo();
+				$criteria->add(new icms_db_criteria_Item('conf_name', $item));
+				$config = icms::$config->getConfigs($criteria);
+				if (count($config) > 0) {
+					icms::$config->deleteConfig($config[0]);
+				}
+			}
+
+			// remove columns from the users table
+			$tabletoupdate = 'users';
+			$columnstoremove = ['openid', 'user_viewoid'];
+			$table = new icms_db_legacy_updater_Table($tabletoupdate);
+			foreach ($columnstoremove as $column) {
+				if ($table->fieldExists($column)) {
+					$table->addDropedField($column);
+				}
+			}
+			if ($table->getDropedFields()) {
+				$table->dropFields();
+			}
+
+			// remove the content.php file if the module is not installed
+			$module_handler = icms::handler('icms_module');
+			$installed_mods = $module_handler->getList();
+
+			if (!in_array('content', $installed_mods)) {
+				$filetoremove = ICMS_ROOT_PATH . '/content.php';
+				icms_core_Filesystem::deleteFile($filetoremove);
+			}
+		}
+	}
+	catch (Exception $e) {
+		echo $e->getMessage();
+	}
+	/* Finish up this portion of the db update */
+	if (!$abortUpdate) {
+		$icmsDatabaseUpdater->updateModuleDBVersion($newDbVersion, 'system');
+		echo sprintf(_DATABASEUPDATER_UPDATE_OK, icms_conv_nr2local($newDbVersion)) . '<br />';
+	}
 	/**
 	 * This portion of the upgrade must remain as the last section of code to execute
 	 * Place all release upgrade steps above this point

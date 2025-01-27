@@ -13,6 +13,8 @@
 if (file_exists('../../mainfile.php')) include_once '../../mainfile.php';
 if (!defined('ICMS_ROOT_PATH')) die("ImpressCMS root path not defined");
 
+use WideImage\WideImage;
+
 $icmsTpl = new icms_view_Tpl();
 
 /* mirror this file - modules/system/admin/images/browser.php - and adjust for paths and URLS */
@@ -85,7 +87,7 @@ if (!is_object(icms::$user)) {
 	$admin = false;
 } else {
 	$groups = &icms::$user->getGroups();
-	$admin = (!icms::$user->isAdmin(1)) ? false : true;
+	$admin = !!icms::$user->isAdmin(1);
 }
 if (!$admin) {
 	exit(IMANAGER_NOPERM);
@@ -158,7 +160,7 @@ function imanager_index($imgcat_id = NULL) {
 		$admin = false;
 	} else {
 		$groups = &icms::$user->getGroups();
-		$admin = (!icms::$user->isAdmin(1)) ? false : true;
+		$admin = !!icms::$user->isAdmin(1);
 	}
 
 	if (!is_writable(ICMS_IMANAGER_FOLDER_PATH)) {
@@ -350,7 +352,7 @@ function imanager_listimg($imgcat_id, $start = 0) {
 		$admin = false;
 	} else {
 		$groups = &icms::$user->getGroups();
-		$admin = (!icms::$user->isAdmin(1)) ? false : true;
+		$admin = !!icms::$user->isAdmin(1);
 	}
 
 	$query = !empty($query) ? $query : NULL;
@@ -901,10 +903,8 @@ function icmsPopupHeader() {
 	<link rel="icon" type="image/png" href="' . ICMS_URL . '/favicon.ico" />
 	';
 	if (defined('_ADM_USE_RTL') && _ADM_USE_RTL) {
-		echo '<link rel="stylesheet" type="text/css" media="all" href="' . ICMS_URL . '/xoops_rtl.css" />';
 		echo '<link rel="stylesheet" type="text/css" media="all" href="' . ICMS_MODULES_URL . '/system/style_rtl.css" />';
 	} else {
-		echo '<link rel="stylesheet" type="text/css" media="all" href="' . ICMS_URL . '/icms.css" />';
 		echo '<link rel="stylesheet" type="text/css" media="all" href="' . ICMS_MODULES_URL . '/system/style.css" />';
 	}
 

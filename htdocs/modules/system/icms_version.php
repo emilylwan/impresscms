@@ -46,7 +46,7 @@ defined("ICMS_ROOT_PATH") || die("ICMS root path not defined");
  */
 $modversion = array(
 	'name' => _MI_SYSTEM_NAME,
-	'version' => '2.0.0',
+	'version' => '2.0.1',
 	'description' => _MI_SYSTEM_DESC,
 	'author' => "fiammybe",
 	'credits' => "The ImpressCMS Project",
@@ -64,11 +64,11 @@ $modversion = array(
 	'image' => "images/system_slogo.png", /* for backward compatibility */
 
 /**  Development information */
-	'status_version' => "RC",
-	'status' => "rc",
-	'date' => "28 May 2023",
-	'author_word' => "",
-	'warning' => _CO_ICMS_WARNING_RC,
+	'status_version' => "2.0.1 Final",
+	'status' => "Final",
+	'date' => "08 Jan 2025",
+	'author_word' => "Fixing a typo in the system module",
+	'warning' => _CO_ICMS_WARNING_FINAL,
 
 	/**
 	 * Contributors
@@ -83,6 +83,8 @@ $modversion['people']['developers'][] = "[url=https://www.impresscms.org/userinf
 $modversion['people']['developers'][] = "[url=https://www.impresscms.org/userinfo.php?uid=489]Mekdrop[/url]";
 
 $modversion['people']['testers'][] = "[url=https://www.impresscms.org/userinfo.php?uid=1102]fiammybe[/url]";
+$modversion['people']['developers'][] = "[url=https://www.impresscms.org/userinfo.php?uid=54]Skenow[/url]";
+$modversion['people']['developers'][] = "[url=https://www.impresscms.org/userinfo.php?uid=489]Mekdrop[/url]";
 $modversion['people']['translators'][] = "";
 $modversion['people']['documenters'][] = "[url=https://www.impresscms.org/userinfo.php?uid=54]Skenow[/url]";
 $modversion['people']['documenters'][] = "[url=https://www.impresscms.org/userinfo.php?uid=1102]fiammybe[/url]";
@@ -153,7 +155,7 @@ $modversion['blocks'][] = array(
 	'description' => '',
 	'show_func' => 'b_system_social_show',
 	'edit_func' => 'b_system_social_edit',
-	'options' => '1|1|1|1|0|0|0|0|0|0|0|0|0|1|0|0|0|0|1|0|1|0|0|1|0|0|0|0|0|0|0|0',
+	'options' => '1|1|1|1|1|1|1',
 	'template' => 'system_block_socialbookmark.html');
 
 $modversion['blocks'][] = array('file' => 'system_admin_blocks.php', 'name' => _MI_SYSTEM_BNAME101, 'description' => '', 'show_func' => 'b_system_admin_warnings_show', 'template' => 'system_admin_block_warnings.html');

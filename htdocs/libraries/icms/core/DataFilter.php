@@ -159,7 +159,7 @@ class icms_core_DataFilter {
 	 *        string $param which characters to apply the escaping to.
 	 * @return string Add slashes to the text if magic_quotes_gpc is turned off (and that should be always on >= PHP 5.4!!!).
 	 */
-	public static function addSlashes(string $text, string $param = null) {
+	public static function addSlashes(string $text, ?string $param = null) {
 		return addcslashes($text, $param);
 	}
 
@@ -461,32 +461,35 @@ class icms_core_DataFilter {
 	 * @return string
 	 */
 	static public function filterTextareaDisplay($text, $smiley = 1, $icode = 1, $image = 1, $br = 1) {
-		icms::$preload->triggerEvent('beforeFilterTextareaDisplay', array(&$text, $smiley, $icode, $image, $br));
+		if($text) {
+			icms::$preload->triggerEvent('beforeFilterTextareaDisplay', array(&$text, $smiley, $icode, $image, $br));
 
 		// neccessary for the time being until we rework the IPF & Data Object Types in 2.0
-		$text = str_replace('<!-- input filtered -->', '', $text);
-		$text = str_replace('<!-- filtered with htmlpurifier -->', '', $text);
 
-		$text = self::htmlSpecialChars($text);
-		$text = self::codePreConv($text, $icode);
-		$text = self::makeClickable($text);
-		if ($smiley != 0) {
-			$text = self::smiley($text);
-		}
-		if ($icode != 0) {
-			if ($image != 0) {
-				$text = self::codeDecode($text);
-			} else {
-				$text = self::codeDecode($text, 0);
+			$text = str_replace('<!-- input filtered -->', '', $text);
+			$text = str_replace('<!-- filtered with htmlpurifier -->', '', $text);
+
+			$text = self::htmlSpecialChars($text);
+			$text = self::codePreConv($text, $icode);
+			$text = self::makeClickable($text);
+			if ($smiley != 0) {
+				$text = self::smiley($text);
 			}
-		}
-		if ($br !== 0) {
-			$text = self::nl2Br($text);
-		}
-		$text = self::codeConv($text, $icode, $image);
+			if ($icode != 0) {
+				if ($image != 0) {
+					$text = self::codeDecode($text);
+				} else {
+					$text = self::codeDecode($text, 0);
+				}
+			}
+			if ($br !== 0) {
+				$text = self::nl2Br($text);
+			}
+			$text = self::codeConv($text, $icode, $image);
 
-		icms::$preload->triggerEvent('afterFilterTextareaDisplay', array(&$text, $smiley, $icode, $image, $br));
-		return $text;
+			icms::$preload->triggerEvent('afterFilterTextareaDisplay', array(&$text, $smiley, $icode, $image, $br));
+			return $text;
+		}
 	}
 
 	/**
